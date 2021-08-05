@@ -50,7 +50,7 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	archiveName := path.Join(models.ArchivesFolderRoot, fileHeader.Filename)
+	archiveName := path.Join(models.ArchivesFolderRoot, path.Base(fileHeader.Filename))
 	localFile, createErr := os.Create(archiveName)
 	if createErr != nil {
 		ErrLogger.Println(createErr)
