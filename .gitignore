@@ -2,3 +2,4 @@
 .vscode/
 dots.db
 dots-server
+archives/*

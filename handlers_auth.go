@@ -1,9 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/alvanrahimli/dots-server/dataaccess"
 	"github.com/alvanrahimli/dots-server/models"
 	"github.com/alvanrahimli/dots-server/utils"
 	"net/http"
@@ -112,21 +112,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	//goland:noinspection GoUnhandledErrorResult
 	defer db.Close()
 
-	user := models.User{}
-
 	// Get user by email
-	getUserRawQuery := `SELECT Id, Username, Email, Password FROM Users u WHERE u.Email = $1`
-	row := db.QueryRow(getUserRawQuery, email)
-	if err := row.Scan(&user.Id, &user.Username, &user.Email, &user.Password); err != nil {
-		if err == sql.ErrNoRows {
-			ErrLogger.Printf("Could not find user with email '%s'", email)
-			http.Error(w, fmt.Sprintf("Could not find user with email '%s'", email), http.StatusNotFound)
-			return
-		} else {
-			ErrLogger.Println(err.Error())
-			http.Error(w, fmt.Sprintf("Could not find user with email '%s'", email), http.StatusNotFound)
-			return
-		}
+	user, getUserErr := dataaccess.FindUserByEmail(db, email)
+	if getUserErr != nil {
+		ErrLogger.Println(getUserErr.Error())
+		http.Error(w, fmt.Sprintf("Could not find user with email '%s'", email), http.StatusNotFound)
+		return
 	}
 
 	// Check user's password
@@ -153,14 +144,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert new token
-	insertTokenQuery := `INSERT INTO AuthTokens (Token, ExpirationDate, UserId) VALUES (?, ?, ?)`
-	statement, stmtErr = db.Prepare(insertTokenQuery)
-	if stmtErr != nil {
-		ErrLogger.Println(stmtErr.Error())
-		http.Error(w, stmtErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	token := models.AuthToken{
 		Id:             0,
 		UserId:         user.Id,
@@ -168,11 +151,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		ExpirationDate: time.Now().Add(time.Hour * 24 * 31).Format(models.DatetimeLayout), // a month,
 	}
 
-	_, dbErr := statement.Exec(token.Token, token.ExpirationDate, token.UserId)
-	if dbErr != nil {
-		ErrLogger.Println(dbErr.Error())
-		http.Error(w, dbErr.Error(), http.StatusInternalServerError)
-		return
+	tokenErr := dataaccess.AddToken(&token, db)
+	if tokenErr != nil {
+
 	}
 
 	userDto := map[string]string{

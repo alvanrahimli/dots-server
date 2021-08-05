@@ -5,4 +5,5 @@ Server side application for [dots-cli](https://github.com/alvanrahimli/dots-cli)
 - [x] Modelling
 - [x] Login
 - [x] Register
-- [ ] Add package
+- [x] Add package
+- [ ] Enhanced API endpoints

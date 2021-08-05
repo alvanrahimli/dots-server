@@ -15,9 +15,10 @@ type AuthToken struct {
 }
 
 type Package struct {
-	Id      int
-	Name    string
-	Version string
+	Id          int
+	Name        string
+	Version     string
+	ArchiveName string
 
 	UserId int
 }
@@ -38,5 +39,6 @@ type RemoteAddr struct {
 }
 
 const (
-	DatetimeLayout = "02/01/2006 15:04:05"
+	DatetimeLayout     = "02/01/2006 15:04:05"
+	ArchivesFolderRoot = "./archives"
 )

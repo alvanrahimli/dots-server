@@ -6,13 +6,13 @@ import (
 )
 
 func AddPackage(pack *models.Package, db *sql.DB) (models.Package, error) {
-	insertQuery := `INSERT INTO Packages (Name, Version, UserId) VALUES (?, ?, ?)`
+	insertQuery := `INSERT INTO Packages (Name, Version, ArchiveName, UserId) VALUES (?, ?, ?, ?)`
 	statement, stmtErr := db.Prepare(insertQuery)
 	if stmtErr != nil {
 		return models.Package{}, stmtErr
 	}
 
-	result, execErr := statement.Exec(pack.Name, pack.Version, pack.UserId)
+	result, execErr := statement.Exec(pack.Name, pack.Version, pack.ArchiveName, pack.UserId)
 	if execErr != nil {
 		return models.Package{}, execErr
 	}
@@ -38,9 +38,9 @@ func GetPackage(packId int, db *sql.DB) (models.Package, error) {
 		UserId:  0,
 	}
 
-	getQuery := `SELECT Id, Name, Version, UserId FROM Packages p WHERE p.Id = $1`
+	getQuery := `SELECT Id, Name, Version, ArchiveName, UserId FROM Packages p WHERE p.Id = $1`
 	row := db.QueryRow(getQuery, packId)
-	if err := row.Scan(&pack.Id, &pack.Name, &pack.Version, &pack.UserId); err != nil {
+	if err := row.Scan(&pack.Id, &pack.Name, &pack.Version, &pack.ArchiveName, &pack.UserId); err != nil {
 		return models.Package{}, err
 	}
 

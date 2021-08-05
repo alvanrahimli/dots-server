@@ -62,6 +62,11 @@ func ValidatePackage(pack *models.Package) (string, bool) {
 		errors = append(errors, "Package version is invalid. Must be: x.x.x form")
 	}
 
+	if pack.ArchiveName == "" {
+		isValid = false
+		errors = append(errors, "Archive name is required")
+	}
+
 	return strings.Join(errors, ", "), isValid
 }
 
@@ -82,11 +87,7 @@ func ValidateToken(token string, db *sql.DB) (int, bool) {
 
 	// Check expiration date
 	expDate, timeErr := time.Parse(models.DatetimeLayout, expDateStr)
-	if timeErr != nil {
-		return 0, false
-	}
-
-	if time.Now().Before(expDate) {
+	if timeErr == nil && time.Now().Before(expDate) {
 		return userId, true
 	}
 

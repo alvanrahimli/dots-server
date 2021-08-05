@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
@@ -29,16 +30,16 @@ func main() {
 	InfoLogger.Printf("Server started at port: %s", PORT)
 	serverAddress := fmt.Sprintf(":%s", PORT)
 
-	// File server
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
+	router := mux.NewRouter().StrictSlash(true)
 
-	http.HandleFunc("/ping", pingHandler)
-	http.HandleFunc("/register", registerHandler)
-	http.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/packages/add", addPackageHandler)
+	router.HandleFunc("/ping", pingHandler).Methods("GET")
+	router.HandleFunc("/archives/{name}", getArchiveHandler).Methods("GET")
 
-	if err := http.ListenAndServe(serverAddress, nil); err != nil {
+	router.HandleFunc("/login", loginHandler).Methods("POST")
+	router.HandleFunc("/register", registerHandler).Methods("POST")
+	router.HandleFunc("/packages/add", addPackageHandler).Methods("POST")
+
+	if err := http.ListenAndServe(serverAddress, router); err != nil {
 		log.Fatal(err)
 	}
 }
