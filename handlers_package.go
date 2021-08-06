@@ -6,6 +6,7 @@ import (
 	"github.com/alvanrahimli/dots-server/dataaccess"
 	"github.com/alvanrahimli/dots-server/models"
 	"github.com/alvanrahimli/dots-server/utils"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"os"
@@ -110,6 +111,55 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	_, writeErr := w.Write(responseJson)
+	if writeErr != nil {
+		ErrLogger.Println(writeErr.Error())
+		http.Error(w, "Could not write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func getPackagesHandler(w http.ResponseWriter, r *http.Request) {
+	InfoLogger.Printf("Request received for URL %s", r.URL)
+
+	packageName := mux.Vars(r)["name"]
+	if packageName == "" {
+		http.Error(w, "Package name not provided", http.StatusBadRequest)
+		return
+	}
+
+	db := getDbInstance()
+	defer db.Close()
+
+	packages, getErr := dataaccess.GetPackages(packageName, db)
+	if getErr != nil {
+		ErrLogger.Println(getErr.Error())
+		http.Error(w, "Error occurred while getting packages", http.StatusInternalServerError)
+		return
+	}
+
+	if len(packages) == 0 {
+		http.Error(w, "Could not find any package", http.StatusNotFound)
+		return
+	}
+
+	response := models.HttpResponse{
+		Code:    0,
+		Message: fmt.Sprintf("Found %d packages", len(packages)),
+		Data: map[string]interface{}{
+			"Packages": packages,
+		},
+	}
+
+	responseJson, jsonErr := json.Marshal(response)
+	if jsonErr != nil {
+		ErrLogger.Println(jsonErr.Error())
+		http.Error(w, "Could not marshal response dto", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	_, writeErr := w.Write(responseJson)
 	if writeErr != nil {

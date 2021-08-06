@@ -34,6 +34,7 @@ func main() {
 
 	router.HandleFunc("/ping", pingHandler).Methods("GET")
 	router.HandleFunc("/archives/{name}", getArchiveHandler).Methods("GET")
+	router.HandleFunc("/packages/{name}", getPackagesHandler).Methods("GET")
 
 	router.HandleFunc("/login", loginHandler).Methods("POST")
 	router.HandleFunc("/register", registerHandler).Methods("POST")

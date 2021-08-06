@@ -46,3 +46,30 @@ func GetPackage(packId int, db *sql.DB) (models.Package, error) {
 
 	return pack, nil
 }
+
+func GetPackages(name string, db *sql.DB) ([]models.Package, error) {
+	query := `SELECT Id, Name, Version, ArchiveName FROM Packages WHERE Name = ?`
+
+	statement, prepareErr := db.Prepare(query)
+	if prepareErr != nil {
+		return nil, prepareErr
+	}
+
+	rows, dbErr := statement.Query(name)
+	if dbErr != nil {
+		return nil, dbErr
+	}
+
+	packages := make([]models.Package, 0)
+	for rows.Next() {
+		pack := models.Package{}
+		scanErr := rows.Scan(&pack.Id, &pack.Name, &pack.Version, &pack.ArchiveName)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+
+		packages = append(packages, pack)
+	}
+
+	return packages, nil
+}
