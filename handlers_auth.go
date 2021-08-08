@@ -153,7 +153,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenErr := dataaccess.AddToken(&token, db)
 	if tokenErr != nil {
-
+		// TODO: token != nil
 	}
 
 	userDto := map[string]string{

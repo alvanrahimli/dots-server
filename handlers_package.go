@@ -14,7 +14,7 @@ import (
 )
 
 func addPackageHandler(w http.ResponseWriter, r *http.Request) {
-	InfoLogger.Printf("Request received for URL %s", r.URL)
+	InfoLogger.Printf("%s: Request received for URL %s", r.Method, r.URL)
 
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		_, err := fmt.Fprintf(w, "ParseForm() err: %v", err)
@@ -23,11 +23,6 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 			ErrLogger.Println(err.Error())
 			return
 		}
-	}
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
 	}
 
 	token := r.Header.Get("Authorization")
@@ -51,7 +46,31 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	archiveName := path.Join(models.ArchivesFolderRoot, path.Base(fileHeader.Filename))
+	user, userErr := dataaccess.FindUserById(db, userId)
+	if userErr != nil {
+		ErrLogger.Println(userErr.Error())
+		http.Error(w, "Could not get user", http.StatusNotFound)
+		return
+	}
+
+	archiveName := path.Join(models.ArchivesFolderRoot, user.Username, path.Base(fileHeader.Filename))
+	// Check user's archive folder
+	_, dirStatErr := os.Stat(path.Dir(archiveName))
+	if dirStatErr != nil {
+		if os.IsNotExist(dirStatErr) {
+			err := os.MkdirAll(path.Dir(archiveName), os.ModePerm)
+			if err != nil {
+				ErrLogger.Println(err.Error())
+				http.Error(w, "Unexpected error occurred", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			ErrLogger.Println(dirStatErr.Error())
+			http.Error(w, "Unexpected error occurred", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	localFile, createErr := os.Create(archiveName)
 	if createErr != nil {
 		ErrLogger.Println(createErr)
@@ -65,13 +84,15 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// pack.Name = first-user.my-pack.registry.com
 	pack := models.Package{
 		Id:          0,
-		Name:        packageName,
+		Name:        fmt.Sprintf("%s.%s.%s", user.Username, packageName, models.RegistryDomain),
 		Version:     packageVersion,
 		ArchiveName: archiveName,
 		UserId:      userId,
 	}
+	InfoLogger.Println(pack.Name)
 
 	response := models.HttpResponse{}
 
@@ -90,7 +111,7 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 		pack, addErr := dataaccess.AddPackage(&pack, db)
 		if addErr != nil {
 			ErrLogger.Println(addErr)
-			http.Error(w, "Could not add package", http.StatusInternalServerError)
+			http.Error(w, "Could not add package", http.StatusBadRequest)
 			return
 		}
 

@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-var PORT = os.Getenv("SERVER_PORT")
+var PORT = os.Getenv("PORT")
 
 // Set up logging
 var (
@@ -30,15 +30,16 @@ func main() {
 	InfoLogger.Printf("Server started at port: %s", PORT)
 	serverAddress := fmt.Sprintf(":%s", PORT)
 
+	// Fucking mux router makes trailing slash mandatory. WTF?
 	router := mux.NewRouter().StrictSlash(true)
-
-	router.HandleFunc("/ping", pingHandler).Methods("GET")
-	router.HandleFunc("/archives/{name}", getArchiveHandler).Methods("GET")
-	router.HandleFunc("/packages/{name}", getPackagesHandler).Methods("GET")
 
 	router.HandleFunc("/login", loginHandler).Methods("POST")
 	router.HandleFunc("/register", registerHandler).Methods("POST")
-	router.HandleFunc("/packages/add", addPackageHandler).Methods("POST")
+	router.HandleFunc("/add-package", addPackageHandler).Methods("POST")
+
+	router.HandleFunc("/ping", pingHandler).Methods("GET")
+	router.HandleFunc("/archives/{user}/{name}", getArchiveHandler).Methods("GET")
+	router.HandleFunc("/get-package/{name}", getPackagesHandler).Methods("GET")
 
 	if err := http.ListenAndServe(serverAddress, router); err != nil {
 		log.Fatal(err)
