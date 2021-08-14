@@ -38,6 +38,8 @@ func main() {
 	router.HandleFunc("/add-package", addPackageHandler).Methods("POST")
 
 	router.HandleFunc("/ping", pingHandler).Methods("GET")
+	router.HandleFunc("/config", configHandler).Methods("GET")
+
 	router.HandleFunc("/archives/{user}/{name}", getArchiveHandler).Methods("GET")
 	router.HandleFunc("/get-package/{name}", getPackagesHandler).Methods("GET")
 
@@ -47,7 +49,7 @@ func main() {
 }
 
 func getDbInstance() *sql.DB {
-	db, dbErr := sql.Open("sqlite3", "./dots.db")
+	db, dbErr := sql.Open("sqlite3", os.Getenv("DB_PATH"))
 	if dbErr != nil {
 		log.Fatal(dbErr)
 	}

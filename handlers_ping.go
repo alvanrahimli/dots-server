@@ -19,14 +19,14 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Header.Get("DOTS_CLI_VERSION") == "" {
-		ErrLogger.Printf("Header DOTS_CLI_VERSION is not defined (remote: %s)", r.RemoteAddr)
+	if r.Header.Get("DOTS-CLI-VERSION") == "" {
+		ErrLogger.Printf("Header DOTS-CLI-VERSION is not defined (remote: %s)", r.RemoteAddr)
 		http.Error(w, "", http.StatusTeapot)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Server", os.Getenv("DOTS_DOMAIN"))
+	w.Header().Set("Server", os.Getenv("REGISTRY_DOMAIN"))
 	_, err := w.Write([]byte("pong"))
 	if err != nil {
 		ErrLogger.Println(err.Error())

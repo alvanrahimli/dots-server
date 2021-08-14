@@ -41,7 +41,7 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 	// Validate token
 	userId, isValid := utils.ValidateToken(token, db)
 	if !isValid {
-		WarnLogger.Println("User '%s' token validation failed")
+		WarnLogger.Printf("User '%s' token validation failed", userId)
 		http.Error(w, "", http.StatusForbidden)
 		return
 	}
@@ -84,10 +84,10 @@ func addPackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// pack.Name = first-user.my-pack.registry.com
+	// pack.Name = my-pack@first-user.registry.com
 	pack := models.Package{
 		Id:          0,
-		Name:        fmt.Sprintf("%s.%s.%s", user.Username, packageName, models.RegistryDomain),
+		Name:        fmt.Sprintf("%s@%s.%s", packageName, user.Username, models.RegistryDomain),
 		Version:     packageVersion,
 		ArchiveName: archiveName,
 		UserId:      userId,
