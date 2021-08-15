@@ -44,10 +44,10 @@ services:
     environment:
       - PORT=80
       - REGISTRY_DOMAIN=your-awesome-domain.com
-      - DB_PATH=dots.db
+      - DB_PATH=/app/db/dots.db
     volumes:
       - '/var/www/dots-server/archives:/app/archives/'
-      - '/var/www/dots-server/dots.db:/app/dots.db'
+      - '/var/www/dots-server/db/:/app/db/'
 ```
 
 ## TODO (API):
