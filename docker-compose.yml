@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  dots-server:
+    image: dotsorg/dots-server
+    ports:
+      - "9090:80"
+    environment:
+      - PORT=80
+      - REGISTRY_DOMAIN=dots.rahim.li
+      - DB_PATH=dots.db
+    volumes:
+      - '/var/www/dots-server/archives:/app/archives/'
+      - '/var/www/dots-server/dots.db:/app/dots.db'

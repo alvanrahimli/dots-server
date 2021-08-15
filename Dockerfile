@@ -21,5 +21,6 @@ RUN GOOS=linux CGO_ENABLED=1 GOARCH=amd64 go build -o /app/server
 
 FROM base AS final
 WORKDIR /app
+RUN ["mkdir", "/app/archives"]
 COPY --from=build /app/server .
 ENTRYPOINT ["/app/server"]
