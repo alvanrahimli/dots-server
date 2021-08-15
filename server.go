@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -46,13 +45,4 @@ func main() {
 	if err := http.ListenAndServe(serverAddress, router); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func getDbInstance() *sql.DB {
-	db, dbErr := sql.Open("sqlite3", os.Getenv("DB_PATH"))
-	if dbErr != nil {
-		log.Fatal(dbErr)
-	}
-
-	return db
 }
